@@ -5,7 +5,7 @@ from transformers import pipeline
 @st.cache_resource
 def load_translator():
     return pipeline(
-        "translation",
+        "translation_zh_to_en",
         model="Helsinki-NLP/opus-mt-zh-en",
     )
 
