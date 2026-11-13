@@ -1,32 +1,28 @@
 import streamlit as st
 from transformers import pipeline
 
-# Load the text classification model pipeline
-classifier = pipeline("text-classification",
-                      model='distilbert/distilbert-base-uncased-finetuned-sst-2-english',
-                      return_all_scores=True)
 
-# Streamlit application title
-st.title("Text Classification for you")
-st.write("Classification for 6 emotions: sadness, joy, love, anger, fear, surprise")
+@st.cache_resource
+def load_translator():
+    return pipeline(
+        "translation",
+        model="Helsinki-NLP/opus-mt-zh-en",
+    )
 
-# Text input for user to enter the text to classify
-text = st.text_area("Enter the text to classify", "")
 
-# Perform text classification when the user clicks the "Classify" button
-if st.button("Classify"):
-    # Perform text classification on the input text
-    results = classifier(text)[0]
+st.title("Chinese to English Translator")
+st.write("Enter Chinese text below to translate it into English.")
 
-    # Display the classification result
-    max_score = float('-inf')
-    max_label = ''
+with st.form("translation_form"):
+    text = st.text_area("Chinese text", value="你好，我的狗很可爱")
+    submitted = st.form_submit_button("Translate")
 
-    for result in results:
-        if result['score'] > max_score:
-            max_score = result['score']
-            max_label = result['label']
-
-    st.write("Text:", text)
-    st.write("Label:", max_label)
-    st.write("Score:", max_score)
+if submitted:
+    if not text.strip():
+        st.warning("Enter some Chinese text to translate.")
+    else:
+        with st.spinner("Translating..."):
+            translator = load_translator()
+            result = translator(text, max_length=50)
+        st.subheader("English translation")
+        st.write(result[0]["translation_text"])
